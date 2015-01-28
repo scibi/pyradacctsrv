@@ -1,4 +1,14 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import setuptools
+
+try:
+    from pypandoc import convert
+    read_md = lambda f: convert(f, 'rst')
+except ImportError:
+    print("warning: pypandoc module not found, could not convert Markdown to RST")
+    read_md = lambda f: open(f, 'r').read()
 
 setuptools.setup(
     name="pyradacctsrv",
@@ -9,7 +19,7 @@ setuptools.setup(
     author_email="patryk@sciborek.com",
 
     description="RADIUS Accounting server implemented in Python",
-    long_description=open('README.rst').read(),
+    long_description=read_md('README.md'),
 
     packages=setuptools.find_packages(),
 
