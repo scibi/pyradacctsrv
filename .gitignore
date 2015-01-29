@@ -34,3 +34,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# VIM
+.*.swp
+
+# Twisted trial
+_trial_temp
