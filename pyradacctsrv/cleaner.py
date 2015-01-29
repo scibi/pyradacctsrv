@@ -24,11 +24,11 @@ class SessionCleaner(object):
         log.msg('check_old_sessions()', logLevel=logging.DEBUG)
         try:
             old_sessions = yield self.session_db.get_old_sessions()
-            log.msg('check_old_sessions() old_sessions={}'
+            log.msg('check_old_sessions() old_sessions={0}'
                     .format(old_sessions), logLevel=logging.DEBUG)
             for s in old_sessions:
                 yield self.session_db.process_stopped(s)
 
         except txredisapi.ConnectionError as e:
-            log.msg('check_old_sessions - connection error {}'
+            log.msg('check_old_sessions - connection error {0}'
                     .format(e), logLevel=logging.WARNING)

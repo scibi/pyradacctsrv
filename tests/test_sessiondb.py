@@ -75,9 +75,9 @@ class SessionDBTest(unittest.TestCase):
 
         yield self.session_db.process_stopped(session_id)
 
-        self.redis_conn.hgetall.assert_called_with('SESSION:{}'.format(
+        self.redis_conn.hgetall.assert_called_with('SESSION:{0}'.format(
             session_id))
-        self.redis_conn.delete.assert_called_with('SESSION:{}'.format(
+        self.redis_conn.delete.assert_called_with('SESSION:{0}'.format(
             session_id))
         self.redis_conn.zrem.assert_called_with('last_seen', session_id)
         self.redis_conn.rpush.assert_called_with('output_queue', mock.ANY)
@@ -92,7 +92,7 @@ class SessionDBTest(unittest.TestCase):
 
         yield self.session_db.process_stopped(session_id)
 
-        self.redis_conn.hgetall.assert_called_with('SESSION:{}'.format(
+        self.redis_conn.hgetall.assert_called_with('SESSION:{0}'.format(
             session_id))
         self.assertFalse(self.redis_conn.delete.called,
                          msg='redis.delete should not be called')
