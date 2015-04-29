@@ -13,9 +13,10 @@ import logging
 
 @python_2_unicode_compatible
 class SessionDB(object):
-    def __init__(self, redis, session_timeout=60):
+    def __init__(self, redis, session_timeout=60, removed_timeout=60):
         self.redis = redis
         self.time_out = session_timeout
+        self.removed_timeout = removed_timeout
 
     def update_last_seen(self, session_id):
         log.msg('SessionDB.update_last_seen({0})'.format(session_id),
@@ -29,6 +30,19 @@ class SessionDB(object):
                 logLevel=logging.DEBUG)
         rv = yield self.redis.zrangebyscore('last_seen', min=0, max=end_time)
         defer.returnValue(rv)
+
+    @defer.inlineCallbacks
+    def get_old_removed(self):
+        end_time = int(time.time())-self.removed_timeout
+        log.msg('SessionDB.get_old_sessions start=0 end={0}'.format(end_time),
+                logLevel=logging.DEBUG)
+        rv = yield self.redis.zrangebyscore('recently_removed', min=0, max=end_time)
+        defer.returnValue(rv)
+
+    @defer.inlineCallbacks
+    def was_removed(self, session_id):
+        rv = yield self.redis.zscore('recently_removed', session_id)
+        defer.returnValue(rv is not None)
 
     @defer.inlineCallbacks
     def process_stopped(self, session_id):

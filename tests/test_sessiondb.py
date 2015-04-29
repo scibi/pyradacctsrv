@@ -21,10 +21,12 @@ class SessionDBTest(unittest.TestCase):
     def setUp(self, lc):
         self.redis_conn = mock.Mock()
         self.expected_session_timeout = 120
+        self.expected_removed_timeout = 600
 
         self.session_db = SessionDB(
             redis=self.redis_conn,
-            session_timeout=self.expected_session_timeout
+            session_timeout=self.expected_session_timeout,
+            removed_timeout=self.expected_removed_timeout
         )
 
 #        self.tr_process_stopped_calls = []
@@ -65,6 +67,42 @@ class SessionDBTest(unittest.TestCase):
         self.assertEqual(rv, expected_sessions)
         self.redis_conn.zrangebyscore.assert_called_with('last_seen', min=0,
                                                          max=expected_score)
+
+    @defer.inlineCallbacks
+    def test_get_old_removed_sessions_zrangebyscore_called(self):
+        simulated_time = 1422464228
+        expected_score = simulated_time - self.expected_removed_timeout
+        expected_sessions = ['a', 'b']
+
+        self.redis_conn.zrangebyscore = dmockfunc(expected_sessions)
+
+        with mock.patch('time.time') as time_thing:
+            time_thing.return_value = simulated_time
+
+            rv = yield self.session_db.get_old_removed()
+
+        self.assertEqual(rv, expected_sessions)
+        self.redis_conn.zrangebyscore.assert_called_with('recently_removed', min=0,
+                                                         max=expected_score)
+
+    @defer.inlineCallbacks
+    def test_was_removed_true(self):
+        session_id = 'some_session_id'
+        self.redis_conn.zscore = dmockfunc(1234)
+
+        rv = yield self.session_db.was_removed(session_id)
+
+        self.assertEqual(rv, True)
+        self.redis_conn.zscore.assert_called_with('recently_removed', session_id)
+
+    @defer.inlineCallbacks
+    def test_was_removed_false(self):
+        session_id = 'some_session_id'
+        self.redis_conn.zscore = dmockfunc(None)
+
+        rv = yield self.session_db.was_removed(session_id)
+
+        self.assertEqual(rv, False)
 
     @defer.inlineCallbacks
     def test_process_stopped_exisiting(self):
