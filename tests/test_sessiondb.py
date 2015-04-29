@@ -70,11 +70,17 @@ class SessionDBTest(unittest.TestCase):
     def test_process_stopped_exisiting(self):
         session_id = 'abc'
         expected_dict = {'a': 'b', 'c': 'd'}
+        expected_score = 1422464228
 
         self.redis_conn.hgetall = dmockfunc(expected_dict)
 
-        yield self.session_db.process_stopped(session_id)
+        with mock.patch('time.time') as time_thing:
+            time_thing.return_value = expected_score
+            yield self.session_db.process_stopped(session_id)
 
+        self.redis_conn.zadd.assert_called_with('recently_removed',
+                                                expected_score,
+                                                session_id)
         self.redis_conn.hgetall.assert_called_with('SESSION:{0}'.format(
             session_id))
         self.redis_conn.delete.assert_called_with('SESSION:{0}'.format(
@@ -98,5 +104,33 @@ class SessionDBTest(unittest.TestCase):
                          msg='redis.delete should not be called')
         self.assertFalse(self.redis_conn.zrem.called,
                          msg='redis.zrem should not be called')
+        self.assertFalse(self.redis_conn.zadd.called,
+                         msg='redis.zadd should not be called')
         self.assertFalse(self.redis_conn.rpush.called,
                          msg='redis.rpush should not be called')
+
+    @defer.inlineCallbacks
+    def test_save_packet(self):
+        session_id = 'some_id'
+        no_overwrite = [b'X-Session-Start-Time']
+        packet = {
+            b'Unique-Acct-Session-Id': session_id,
+            b'Acct-Input-Octets': 10,
+            b'Acct-Output-Octets': 20,
+            b'User-Name': 'user1',
+            b'X-Session-Start-Time': 100,
+            b'X-Session-Stop-Time': 200,
+        }
+
+        session_key = 'SESSION:{}'.format(session_id)
+        packet_no_overwrite = {k: v for (k, v) in packet.iteritems()
+                               if k not in no_overwrite}
+
+        yield self.session_db.save_packet(packet)
+
+        self.redis_conn.hmset.assert_called_with(session_key,
+                                                 packet_no_overwrite)
+        self.redis_conn.hsetnx.assert_called_with(session_key,
+                                                  b'X-Session-Start-Time', 100)
+        self.redis_conn.hincr.assert_called_with(session_key,
+                                                 'X-Packet-Counter')
