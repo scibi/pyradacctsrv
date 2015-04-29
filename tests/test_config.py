@@ -4,14 +4,9 @@
 from __future__ import unicode_literals
 from future.utils import python_2_unicode_compatible
 
-from mock import patch, Mock
-
-from twisted.internet import defer
 from twisted.trial import unittest
 
 from pyradacctsrv.config import Config, ConfigError
-
-from tests.testing import gen_nondeferred_mock, dmockfunc, fmockfunc
 
 
 @python_2_unicode_compatible
@@ -68,4 +63,3 @@ hosts:
         self.assertEqual(hosts['10.0.0.1']['secret'], 'sec_nas1')
         self.assertEqual(hosts['10.0.0.2']['secret'], 'sec_def')
         self.assertEqual(hosts['10.0.0.3']['secret'], 'sec_def')
-
