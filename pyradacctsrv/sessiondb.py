@@ -34,7 +34,7 @@ class SessionDB(object):
     @defer.inlineCallbacks
     def get_old_removed(self):
         end_time = int(time.time())-self.removed_timeout
-        log.msg('SessionDB.get_old_sessions start=0 end={0}'.format(end_time),
+        log.msg('SessionDB.get_old_removed start=0 end={0}'.format(end_time),
                 logLevel=logging.DEBUG)
         rv = yield self.redis.zrangebyscore('recently_removed', min=0, max=end_time)
         defer.returnValue(rv)
