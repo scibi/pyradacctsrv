@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
 from future.utils import python_2_unicode_compatible
 
 from twisted.internet import defer
@@ -36,7 +37,8 @@ class SessionDB(object):
         end_time = int(time.time())-self.removed_timeout
         log.msg('SessionDB.get_old_removed start=0 end={0}'.format(end_time),
                 logLevel=logging.DEBUG)
-        rv = yield self.redis.zrangebyscore('recently_removed', min=0, max=end_time)
+        rv = yield self.redis.zrangebyscore('recently_removed',
+                                            min=0, max=end_time)
         defer.returnValue(rv)
 
     @defer.inlineCallbacks

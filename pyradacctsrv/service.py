@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
 
 from twisted.internet import reactor
 from twisted.application import service
@@ -24,10 +25,9 @@ class RAService(service.Service):
                                            v['secret'],
                                            v['name'])
                       for k, v in hosts.items()}
-        print(self.hosts)
 
     def startService(self):
-        print "startService()"
+        print("startService()")
         self.sdb = SessionDB(redis=txredisapi.lazyConnectionPool())
         self.cleaner = SessionCleaner(session_db=self.sdb)
         self._port = reactor.listenUDP(1813, RADIUSAccountingProtocol(
@@ -36,5 +36,5 @@ class RAService(service.Service):
             rad_dict=dictionary.Dictionary('dictionary')))
 
     def stopService(self):
-        print "stopService()"
+        print("stopService()")
         return self._port.stopListening()
