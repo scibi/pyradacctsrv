@@ -31,6 +31,19 @@ class Config(object):
         if 'hosts' not in self.config:
             raise ConfigError("Unable to finde hosts definitions")
 
+        self.session_timeout = 900
+        self.removed_timeout = 900
+
+        try:
+            self.session_timeout = self.config['timeouts']['session']
+        except KeyError:
+            pass
+
+        try:
+            self.removed_timeout = self.config['timeouts']['removed']
+        except KeyError:
+            pass
+
     def hosts(self):
         hosts = {}
         default_secret = None

@@ -11,6 +11,11 @@ from pyradacctsrv.config import Config, ConfigError
 
 @python_2_unicode_compatible
 class ConfigTest(unittest.TestCase):
+    def setUp(self):
+        self.minimal_config = Config("""
+---
+hosts:
+""")
 
     def test_empty_config(self):
         self.assertRaises(ConfigError, Config, "---")
@@ -63,3 +68,18 @@ hosts:
         self.assertEqual(hosts['10.0.0.1']['secret'], 'sec_nas1')
         self.assertEqual(hosts['10.0.0.2']['secret'], 'sec_def')
         self.assertEqual(hosts['10.0.0.3']['secret'], 'sec_def')
+
+    def test_timeout_defaults(self):
+        self.assertEqual(self.minimal_config.session_timeout, 900)
+        self.assertEqual(self.minimal_config.removed_timeout, 900)
+
+    def test_timeout_custom(self):
+        c = Config("""
+---
+timeouts:
+  session: 60
+  removed: 61
+hosts:
+""")
+        self.assertEqual(c.session_timeout, 60)
+        self.assertEqual(c.removed_timeout, 61)

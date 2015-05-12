@@ -28,7 +28,9 @@ class RAService(service.Service):
 
     def startService(self):
         print("startService()")
-        self.sdb = SessionDB(redis=txredisapi.lazyConnectionPool())
+        self.sdb = SessionDB(redis=txredisapi.lazyConnectionPool(),
+                             session_timeout=self.config.session_timeout,
+                             removed_timeout=self.config.removed_timeout)
         self.cleaner = SessionCleaner(session_db=self.sdb)
         self._port = reactor.listenUDP(1813, RADIUSAccountingProtocol(
             session_db=self.sdb,
