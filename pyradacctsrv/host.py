@@ -27,6 +27,11 @@ class Host(object):
         self.settings.update(host_settings)
 
         self.secret = self.settings['secret']
+        self.filters = []
+        try:
+            self.filters = self.settings['filters']
+        except KeyError:
+            pass
 
     def gen_uniq_id(self, pkt):
         uniqid = "-".join([str(pkt[attr][0]) for attr
@@ -62,3 +67,11 @@ class Host(object):
                     except KeyError:
                         pass
         return rv
+
+    def apply_filters(self, pkt):
+        for f in self.filters:
+            filter_fun = getattr(self, 'filter_{}'.format(f['type']), None)
+            if filter_fun is None:  # no such filter
+                continue
+            pkt = filter_fun(pkt, f)
+        return pkt
